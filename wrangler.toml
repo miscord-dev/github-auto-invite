@@ -1,4 +1,4 @@
-name = ".src"
+name = "github-auto-invite"
 main = "src/worker.ts"
 compatibility_date = "2023-06-17"
 
