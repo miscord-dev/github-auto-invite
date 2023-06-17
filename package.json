@@ -6,7 +6,8 @@
     "deploy": "wrangler publish",
     "start": "wrangler dev",
     "fix": "eslint --fix 'src/**/*.ts'",
-    "lint": "eslint 'src/**/*.ts'"
+    "lint": "eslint 'src/**/*.ts'",
+    "register": "ts-node src/register.ts"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20230419.0",
@@ -23,6 +24,7 @@
   },
   "dependencies": {
     "discord-interactions": "^3.4.0",
-    "discord.js": "^14.11.0"
+    "discord.js": "^14.11.0",
+    "dotenv": "^16.3.1"
   }
 }
