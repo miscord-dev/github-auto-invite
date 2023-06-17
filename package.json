@@ -4,12 +4,23 @@
   "private": true,
   "scripts": {
     "deploy": "wrangler publish",
-    "start": "wrangler dev"
+    "start": "wrangler dev",
+    "fix": "eslint --fix 'src/**/*.ts'",
+    "lint": "eslint 'src/**/*.ts'"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20230419.0",
+    "@typescript-eslint/eslint-plugin": "^5.59.11",
+    "@typescript-eslint/parser": "^5.59.11",
+    "eslint": "^8.43.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-prettier": "^4.2.1",
     "itty-router": "^3.0.12",
+    "prettier": "^2.8.8",
     "typescript": "^5.0.4",
     "wrangler": "^3.0.0"
+  },
+  "dependencies": {
+    "discord.js": "^14.11.0"
   }
 }
