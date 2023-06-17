@@ -1,19 +1,64 @@
 import { Router } from 'itty-router';
+import { verifyDiscordRequest } from './utils';
+import { InteractionResponseType, InteractionType } from 'discord-api-types/v10';
+import { command } from './command';
+
+class JsonResponse extends Response {
+	constructor(body?: any, init?: ResponseInit) {
+		const jsonBody = JSON.stringify(body);
+		init = init || {
+			headers: {
+				'content-type': 'application/json;charset=UTF-8',
+			},
+		};
+		super(jsonBody, init);
+	}
+}
 
 // now let's create a router (note the lack of "new")
 const router = Router();
 
-// GET collection index
-router.get('/api/todos', () => new Response('Todos Index!'));
+/**
+ * A simple :wave: hello page to verify the worker is working.
+ */
+router.get('/', (request, env) => {
+	return new Response(`👋 ${env.DISCORD_APPLICATION_ID}`);
+});
 
-// GET item
-router.get('/api/todos/:id', ({ params }) => new Response(`Todo #${params.id}`));
+/**
+ * Main route for all requests sent from Discord.  All incoming messages will
+ * include a JSON payload described here:
+ * https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object
+ */
+router.post('/', async (request, env) => {
+	const { isValid, interaction } = await verifyDiscordRequest(request, env);
+	if (!isValid || !interaction) {
+		return new Response('Bad request signature', { status: 401 });
+	}
 
-// POST to the collection (we'll use async here)
-router.post('/api/todos', async (request) => {
-	const content = await request.json();
+	console.log(JSON.stringify(interaction, null, 2));
 
-	return new Response('Creating Todo: ' + JSON.stringify(content));
+	if (interaction.type === InteractionType.Ping) {
+		// The `PING` message is used during the initial webhook handshake, and is
+		// required to configure the webhook in the developer portal.
+		console.log('Handling Ping request');
+		return new JsonResponse({
+			type: InteractionResponseType.Pong
+		});
+	}
+
+	if (interaction.type === InteractionType.ApplicationCommand) {
+		switch (interaction.data.name.toLowerCase()) {
+			case command.name.toLowerCase(): {
+				return new JsonResponse({
+					type: InteractionResponseType.ChannelMessageWithSource,
+					data: {
+						content: 'Hello, world!',
+					},
+				});
+			}
+		}
+	}
 });
 
 // 404 for everything else
