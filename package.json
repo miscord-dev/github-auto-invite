@@ -10,6 +10,7 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20230419.0",
+    "@types/node": "^20.3.1",
     "@typescript-eslint/eslint-plugin": "^5.59.11",
     "@typescript-eslint/parser": "^5.59.11",
     "eslint": "^8.43.0",
@@ -21,6 +22,7 @@
     "wrangler": "^3.0.0"
   },
   "dependencies": {
+    "discord-interactions": "^3.4.0",
     "discord.js": "^14.11.0"
   }
 }
