@@ -3,36 +3,72 @@
  * and registration.
  */
 
-import { SlashCommandBuilder, SlashCommandSubcommandBuilder } from "@discordjs/builders";
+import { ApplicationCommandOptionType, ApplicationCommandType } from "discord-api-types/v10";
+import { InteractionType } from "discord-interactions";
 
-export const command = new SlashCommandBuilder()
-    .setName('invitemegithub')
-    .setDescription('Invite me to the GitHub organization!')
-    .addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
-        subcommand
-            .setName('request')
-            .setDescription('Request a code to verify account ownership of your GitHub account.')
-            .addStringOption((option) =>
-                option
-                    .setName('github-username')
-                    .setDescription('Your GitHub username.')
-                    .setRequired(true)
-            )
-    )
-    .addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
-        subcommand
-            .setName('verify')
-            .setDescription('Verify your GitHub account ownership and get access to the GitHub organization.')
-            .addStringOption((option) =>
-                option
-                    .setName('github-username')
-                    .setDescription('Your GitHub username.')
-                    .setRequired(true)
-            )
-            .addStringOption((option) =>
-                option
-                    .setName('gist-url')
-                    .setDescription('The URL to the gist containing the verification code.')
-                    .setRequired(true)
-            )
-    )
+// https://discord.com/developers/docs/interactions/application-commands#slash-commands
+
+type ApplicationCommand = {
+    name: string;
+    description: string;
+    type: ApplicationCommandType;
+    options?: ApplicationCommandOption[];
+}
+
+type ApplicationCommandOption = {
+    name: string;
+    description: string;
+    type: ApplicationCommandOptionType;
+    required?: boolean;
+    choices?: ApplicationCommandOptionChoice[];
+    options?: ApplicationCommandOption[];
+}
+
+type ApplicationCommandOptionChoice = {
+    name: string;
+    value: string | number;
+}
+
+export const verifySubCommand = <ApplicationCommandOption>{
+    name: 'verify',
+    description: 'Verify your GitHub account ownership and get access to the GitHub organization.',
+    type: ApplicationCommandOptionType.Subcommand,
+    options: [
+        {
+            name: 'github-username',
+            description: 'Your GitHub username.',
+            type: ApplicationCommandOptionType.String,
+            required: true,
+        },
+        {
+            name: 'gist-url',
+            description: 'The URL to the gist containing the verification code.',
+            type: ApplicationCommandOptionType.String,
+            required: true,
+        },
+    ],
+};
+
+const requestSubCommand = <ApplicationCommandOption>{
+    name: 'request',
+    description: 'Request access to the GitHub organization.',
+    type: ApplicationCommandOptionType.Subcommand,
+    options: [
+        {
+            name: 'github-username',
+            description: 'Your GitHub username.',
+            type: ApplicationCommandOptionType.String,
+            required: true,
+        },
+    ],
+};
+
+export const rootCommand = <ApplicationCommand>{
+    name: 'invitemegithub',
+    description: 'Invite me to the GitHub organization!',
+    type: ApplicationCommandType.ChatInput,
+    options: [
+        requestSubCommand,
+        verifySubCommand,
+    ],
+};
