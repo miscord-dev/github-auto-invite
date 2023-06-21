@@ -37,3 +37,8 @@ compatibility_date = "2023-06-17"
 
 # [env.shared]
 # SHARED_VARIABLE = "shared_value"
+
+# [secrets]
+# DISCORD_TOKEN
+# DISCORD_PUBLIC_KEY
+# DISCORD_APPLICATION_ID
