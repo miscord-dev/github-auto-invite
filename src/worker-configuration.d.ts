@@ -19,4 +19,8 @@ interface Env {
 	DISCORD_PUBLIC_KEY: string;
 
 	DISCORD_TOKEN: string;
+
+	GITHUB_ORG_ID: string;
+
+	GITHUB_TOKEN: string;
 }

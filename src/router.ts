@@ -1,19 +1,9 @@
 import { Router } from 'itty-router';
-import { verifyDiscordRequest } from './utils';
+import { JsonResponse, verifyDiscordRequest } from './utils';
 import { handle, rootCommand } from './command';
 import { InteractionResponseType, InteractionType } from 'discord-api-types/v10';
 
-class JsonResponse extends Response {
-	constructor(body?: any, init?: ResponseInit) {
-		const jsonBody = JSON.stringify(body);
-		init = init || {
-			headers: {
-				'content-type': 'application/json;charset=UTF-8',
-			},
-		};
-		super(jsonBody, init);
-	}
-}
+
 
 // now let's create a router (note the lack of "new")
 const router = Router();
@@ -30,7 +20,7 @@ router.get('/', (request, env) => {
  * include a JSON payload described here:
  * https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object
  */
-router.post('/', async (request, env) => {
+router.post('/', async (request, env: Env) => {
 	const { isValid, interaction } = await verifyDiscordRequest(request, env);
 	if (!isValid || !interaction) {
 		return new Response('Bad request signature', { status: 401 });
@@ -48,7 +38,7 @@ router.post('/', async (request, env) => {
 	}
 
 	if (interaction.type === InteractionType.ApplicationCommand) {
-		return handle(interaction);
+		return handle(interaction, env);
 	}
 });
 
