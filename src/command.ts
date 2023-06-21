@@ -124,7 +124,14 @@ type getGistResponse = Endpoints["GET /gists/{gist_id}"]["response"];
 
 const handleVerifySubCommand = async (interaction: APIApplicationCommandInteraction, env: Env) => {
     const data = interaction.data as APIChatInputApplicationCommandInteractionData;
-    if (!data?.options) return new Response();
+    if (!data?.options) {
+        return new JsonResponse(<InteractionResponse>{
+            type: InteractionResponseType.ChannelMessageWithSource,
+            data: {
+                content: `Please provide your GitHub username and the gist ID. For example, \`/invitemegithub verify musaprg d7d6b4de23d21809bd01b219e88c477c\``,
+            }
+        });
+    }
 
     const username = (data.options[0] as APIApplicationCommandInteractionDataStringOption).value;
     const gistId = (data.options[1] as APIApplicationCommandInteractionDataStringOption).value;
