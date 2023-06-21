@@ -1,7 +1,7 @@
 import {
     verifyKey,
 } from 'discord-interactions';
-import { APIInteraction } from 'discord-api-types/v10';
+import { APIApplicationCommandInteraction, APIInteraction, APIInteractionResponse } from 'discord-api-types/v10';
 import { IRequest } from 'itty-router';
 
 export async function verifyDiscordRequest(request: IRequest, env: Env): Promise<{ isValid: boolean, interaction: APIInteraction | undefined }> {

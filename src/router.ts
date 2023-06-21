@@ -1,7 +1,7 @@
 import { Router } from 'itty-router';
 import { verifyDiscordRequest } from './utils';
+import { handle, rootCommand } from './command';
 import { InteractionResponseType, InteractionType } from 'discord-api-types/v10';
-import { command } from './command';
 
 class JsonResponse extends Response {
 	constructor(body?: any, init?: ResponseInit) {
@@ -48,16 +48,7 @@ router.post('/', async (request, env) => {
 	}
 
 	if (interaction.type === InteractionType.ApplicationCommand) {
-		switch (interaction.data.name.toLowerCase()) {
-			case command.name.toLowerCase(): {
-				return new JsonResponse({
-					type: InteractionResponseType.ChannelMessageWithSource,
-					data: {
-						content: 'Hello, world!',
-					},
-				});
-			}
-		}
+		return handle(interaction);
 	}
 });
 

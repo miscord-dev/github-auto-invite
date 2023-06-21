@@ -3,7 +3,8 @@
  * and registration.
  */
 
-import { ApplicationCommandOptionType, ApplicationCommandType } from "discord-api-types/v10";
+import { APIApplicationCommandInteraction, APIApplicationCommandInteractionData, APIChatInputApplicationCommandInteractionData, APIInteraction, ApplicationCommandOptionType, ApplicationCommandType } from "discord-api-types/v10";
+import { APIPingInteraction } from 'discord-api-types/payloads/v10/_interactions/ping'
 import { InteractionType } from "discord-interactions";
 
 // https://discord.com/developers/docs/interactions/application-commands#slash-commands
@@ -71,4 +72,40 @@ export const rootCommand = <ApplicationCommand>{
         requestSubCommand,
         verifySubCommand,
     ],
+};
+
+export const handle = async (interaction: APIApplicationCommandInteraction) => {
+    switch (interaction.data?.name.toLowerCase()) {
+        case rootCommand.name.toLowerCase(): {
+            return handleRootCommand(interaction);
+        }
+    }
+}
+
+const handleRootCommand = async (interaction: APIApplicationCommandInteraction) => {
+    const data = interaction.data as APIChatInputApplicationCommandInteractionData;
+    if (!data?.options) return new Response();
+
+    switch (data.options[0].name.toLowerCase()) {
+        case requestSubCommand.name.toLowerCase(): {
+            return handleRequestSubCommand(interaction);
+        }
+        case verifySubCommand.name.toLowerCase(): {
+            return handleVerifySubCommand(interaction);
+        }
+    }
+}
+
+const handleRequestSubCommand = async (interaction: APIApplicationCommandInteraction) => {
+    const data = interaction.data as APIChatInputApplicationCommandInteractionData;
+    if (!data?.options) return new Response();
+
+    // FIXME: implement me
+};
+
+const handleVerifySubCommand = async (interaction: APIApplicationCommandInteraction) => {
+    const data = interaction.data as APIChatInputApplicationCommandInteractionData;
+    if (!data?.options) return new Response();
+
+    // FIXME: implement me
 };
