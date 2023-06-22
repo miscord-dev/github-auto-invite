@@ -2,6 +2,7 @@
   "name": "github-auto-invite",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "deploy": "wrangler publish",
     "start": "wrangler dev",
@@ -12,6 +13,7 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20230419.0",
     "@types/node": "^20.3.1",
+    "@types/node-fetch": "^2.6.4",
     "@typescript-eslint/eslint-plugin": "^5.59.11",
     "@typescript-eslint/parser": "^5.59.11",
     "eslint": "^8.43.0",
@@ -28,6 +30,7 @@
     "@octokit/core": "^4.2.4",
     "discord-api-types": "^0.37.45",
     "discord-interactions": "^3.4.0",
-    "dotenv": "^16.3.1"
+    "dotenv": "^16.3.1",
+    "ts-node": "^10.9.1"
   }
 }

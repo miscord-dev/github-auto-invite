@@ -1,8 +1,8 @@
 import { Router } from 'itty-router';
 import { JsonResponse, verifyDiscordRequest } from './utils';
-import { handle, rootCommand } from './command';
+import { rootCommand } from './command';
 import { InteractionResponseType, InteractionType } from 'discord-api-types/v10';
-
+import { handle } from './handler';
 
 
 // now let's create a router (note the lack of "new")
