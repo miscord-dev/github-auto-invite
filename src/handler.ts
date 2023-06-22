@@ -1,9 +1,10 @@
 import { requestSubCommand, rootCommand, verifySubCommand } from "./command";
-import { APIApplicationCommandInteraction, APIApplicationCommandInteractionData, APIApplicationCommandInteractionDataStringOption, APIApplicationCommandStringOption, APIChatInputApplicationCommandInteraction, APIChatInputApplicationCommandInteractionData, APIInteraction, APIInteractionDataOptionBase, APIInteractionResponseCallbackData, APIModalInteractionResponseCallbackData, ApplicationCommandOptionType, ApplicationCommandType, InteractionResponseType } from "discord-api-types/v10";
+import { APIApplicationCommandInteraction, APIApplicationCommandInteractionData, APIApplicationCommandInteractionDataOption, APIApplicationCommandInteractionDataStringOption, APIApplicationCommandInteractionDataSubcommandOption, APIApplicationCommandStringOption, APIApplicationCommandSubcommandOption, APIChatInputApplicationCommandInteraction, APIChatInputApplicationCommandInteractionData, APIInteraction, APIInteractionDataOptionBase, APIInteractionResponseCallbackData, APIModalInteractionResponseCallbackData, ApplicationCommandOptionType, ApplicationCommandType, InteractionResponseType } from "discord-api-types/v10";
 import { APIPingInteraction } from 'discord-api-types/payloads/v10/_interactions/ping'
 import { InteractionType } from "discord-interactions";
 import { JsonResponse } from "./utils";
 import { Endpoints } from '@octokit/types';
+import { getGithubApp } from "./octokit";
 
 type InteractionResponse = {
     type: InteractionResponseType;
@@ -24,16 +25,15 @@ const handleRootCommand = async (interaction: APIApplicationCommandInteraction, 
 
     switch (data.options[0].name.toLowerCase()) {
         case requestSubCommand.name.toLowerCase(): {
-            return handleRequestSubCommand(interaction, env);
+            return handleRequestSubCommand(data.options[0] as APIApplicationCommandInteractionDataSubcommandOption, env);
         }
         case verifySubCommand.name.toLowerCase(): {
-            return handleVerifySubCommand(interaction, env);
+            return handleVerifySubCommand(data.options[0] as APIApplicationCommandInteractionDataSubcommandOption, env);
         }
     }
 }
 
-const handleRequestSubCommand = async (interaction: APIApplicationCommandInteraction, env: Env) => {
-    const data = interaction.data as APIChatInputApplicationCommandInteractionData;
+const handleRequestSubCommand = async (data: APIApplicationCommandInteractionDataSubcommandOption, env: Env) => {
     if (!data?.options) return new Response();
 
     return new JsonResponse(<InteractionResponse>{
@@ -49,10 +49,9 @@ const handleRequestSubCommand = async (interaction: APIApplicationCommandInterac
     })
 };
 
-type getGistResponse = Endpoints["GET /gists/{gist_id}"]["response"];
+type getGistResponse = Endpoints["GET /gists/{gist_id}"]["response"]["data"];
 
-const handleVerifySubCommand = async (interaction: APIApplicationCommandInteraction, env: Env) => {
-    const data = interaction.data as APIChatInputApplicationCommandInteractionData;
+const handleVerifySubCommand = async (data: APIApplicationCommandInteractionDataSubcommandOption, env: Env) => {
     if (!data?.options) {
         return new JsonResponse(<InteractionResponse>{
             type: InteractionResponseType.ChannelMessageWithSource,
@@ -62,10 +61,18 @@ const handleVerifySubCommand = async (interaction: APIApplicationCommandInteract
         });
     }
 
+    console.log("interaction.data:", data);
+
     const username = (data.options[0] as APIApplicationCommandInteractionDataStringOption).value;
     const gistId = (data.options[1] as APIApplicationCommandInteractionDataStringOption).value;
 
-    const response = await fetch(`https://api.github.com/gists/${gistId}`);
+    const gistAPIEndpoint = `https://api.github.com/gists/${gistId}`;
+    console.log("fetching gist:", gistAPIEndpoint);
+    const response = await fetch(gistAPIEndpoint, {
+        headers: {
+            "User-Agent": "InviteMeGitHub",
+        }
+    });
     if (!response.ok) {
         switch (response.status) {
             case 404: {
@@ -77,6 +84,7 @@ const handleVerifySubCommand = async (interaction: APIApplicationCommandInteract
                 });
             }
             default: {
+                console.log("failed to fetch gist:", response.status, response.statusText, await response.text())
                 return new JsonResponse(<InteractionResponse>{
                     type: InteractionResponseType.ChannelMessageWithSource,
                     data: {
@@ -89,7 +97,7 @@ const handleVerifySubCommand = async (interaction: APIApplicationCommandInteract
 
     // check if the file in gist contains the organization id
     const gist = await response.json() as getGistResponse;
-    const files = gist?.data?.files;
+    const files = gist?.files;
     if (!files) {
         return new JsonResponse(<InteractionResponse>{
             type: InteractionResponseType.ChannelMessageWithSource,
@@ -109,7 +117,7 @@ const handleVerifySubCommand = async (interaction: APIApplicationCommandInteract
     }
 
     // check if the passed user is the owner of this gist
-    const owner = gist?.data?.owner;
+    const owner = gist?.owner;
     if (!owner) {
         return new JsonResponse(<InteractionResponse>{
             type: InteractionResponseType.ChannelMessageWithSource,
@@ -128,20 +136,20 @@ const handleVerifySubCommand = async (interaction: APIApplicationCommandInteract
     }
 
     // send invitation to the user
-    const inviteResponse = await fetch(`https://api.github.com/orgs/${env.GITHUB_ORG_ID}/invitations`, {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/vnd.github+json',
-            'Authorization': `Bearer ${env.GITHUB_TOKEN}`,
-            'X-GitHub-Api-Version': '2022-11-28',
-        },
-        body: JSON.stringify({
-            invitee_id: owner.id,
-            role: 'direct_member',
-        }),
-    });
-    if (!inviteResponse.ok) {
-        switch (inviteResponse.status) {
+    const app = await getGithubApp(env);
+    return await app.request('POST /orgs/{org}/invitations', {
+        org: env.GITHUB_ORG_ID,
+        invitee_id: owner.id,
+        role: 'direct_member',
+    }).then(({ data }) => {
+        return new JsonResponse(<InteractionResponse>{
+            type: InteractionResponseType.ChannelMessageWithSource,
+            data: {
+                content: `The invitation has been sent to the user. Please check your email.`,
+            }
+        })
+    }).catch((err) => {
+        switch (err.status) {
             case 404: {
                 return new JsonResponse(<InteractionResponse>{
                     type: InteractionResponseType.ChannelMessageWithSource,
@@ -159,6 +167,7 @@ const handleVerifySubCommand = async (interaction: APIApplicationCommandInteract
                 });
             }
             default: {
+                console.log("failed to send invitation:", err.status, err.message, err.errors)
                 return new JsonResponse(<InteractionResponse>{
                     type: InteractionResponseType.ChannelMessageWithSource,
                     data: {
@@ -166,13 +175,6 @@ const handleVerifySubCommand = async (interaction: APIApplicationCommandInteract
                     }
                 });
             }
-        }
-    }
-
-    return new JsonResponse(<InteractionResponse>{
-        type: InteractionResponseType.ChannelMessageWithSource,
-        data: {
-            content: `The invitation has been sent to the user. Please check your email.`,
         }
     });
 };

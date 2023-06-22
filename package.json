@@ -27,6 +27,7 @@
   "dependencies": {
     "@discordjs/builders": "^1.6.3",
     "@discordjs/rest": "^1.7.1",
+    "@octokit/app": "^13.1.8",
     "@octokit/core": "^4.2.4",
     "discord-api-types": "^0.37.45",
     "discord-interactions": "^3.4.0",

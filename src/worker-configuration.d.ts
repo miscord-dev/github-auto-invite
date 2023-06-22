@@ -22,5 +22,13 @@ interface Env {
 
 	GITHUB_ORG_ID: string;
 
-	GITHUB_TOKEN: string;
+	GITHUB_APP_PRIVATE_KEY: string;
+
+	GITHUB_APP_ID: string;
+
+	GITHUB_APP_INSTALLATION_ID: string;
+
+	GITHUB_APP_CLIENT_ID: string;
+
+	GITHUB_APP_CLIENT_SECRET: string;
 }
